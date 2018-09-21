@@ -1,9 +1,7 @@
-const handleSocket = (socket) => {
+const handleSocket = (io, socket) => {
     console.log('New socket connection established - id:', socket.id)
 
     socket.on('chat', (data) => {
-        console.log(data.message)
-
         io.sockets.emit('chat', data)
     })
 
