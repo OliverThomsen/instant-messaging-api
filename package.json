@@ -2,7 +2,7 @@
   "name": "instant-messaging-api",
   "version": "1.0.0",
   "description": "An instant messaging api",
-  "main": "app.js",
+  "main": "dist/main.js",
   "dependencies": {
     "express": "^4.16.3",
     "socket.io": "^2.1.1"
