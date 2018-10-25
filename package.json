@@ -1,28 +1,28 @@
 {
-  "name": "instant-messaging-api",
-  "version": "1.0.0",
-  "description": "An instant messaging api",
-  "main": "dist/main.js",
-  "dependencies": {
-    "@types/node": "^10.11.7",
-    "express": "^4.16.3",
-    "mysql": "^2.16.0",
-    "reflect-metadata": "^0.1.12",
-    "socket.io": "^2.1.1",
-    "typeorm": "^0.2.7"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/OliverThomsen/instant-messaging-api.git"
-  },
-  "author": "Oliver Elleman Thomsen",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/OliverThomsen/instant-messaging-api/issues"
-  },
-  "homepage": "https://github.com/OliverThomsen/instant-messaging-api#readme"
+	"name": "instant-messaging-api",
+	"version": "1.0.0",
+	"description": "An instant messaging api",
+	"main": "dist/main.js",
+	"dependencies": {
+		"@types/node": "^10.11.7",
+		"express": "^4.16.3",
+		"mysql": "^2.16.0",
+		"reflect-metadata": "^0.1.12",
+		"socket.io": "^2.1.1",
+		"typeorm": "^0.2.7"
+	},
+	"devDependencies": {},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/OliverThomsen/instant-messaging-api.git"
+	},
+	"author": "Oliver Elleman Thomsen",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/OliverThomsen/instant-messaging-api/issues"
+	},
+	"homepage": "https://github.com/OliverThomsen/instant-messaging-api#readme"
 }
