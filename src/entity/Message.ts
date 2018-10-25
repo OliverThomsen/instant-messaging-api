@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from "typeorm";
 import { User } from "./User";
 import { Room } from "./Room";
 
@@ -9,16 +9,16 @@ export class Message {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column()
+	@Column('varchar', { length: 5000 })
 	content: string;
 
-	@Column("Datetime")
+	@CreateDateColumn({ name: 'time_stamp' })
 	timeStamp: Date;
 
-	@ManyToOne(type => User, user => user.message)
+	@ManyToOne(type => User, user => user.message, { nullable: false })
 	user: User;
 
-	@ManyToOne(type => Room, room => room.message)
+	@ManyToOne(type => Room, room => room.message, { nullable: false })
 	room: Room;
 
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, PrimaryColumn } from "typeorm";
+import { Entity, ManyToOne, PrimaryColumn, OneToOne, JoinColumn } from "typeorm";
 import { Message } from "./Message";
 import { User } from "./User";
 import { Room } from "./Room";
@@ -7,18 +7,20 @@ import { Room } from "./Room";
 @Entity()
 export class UserRoom {
 
-	@Column()
-	messageLastReceived: Message;
-
-	@Column()
-	messageLastSeen: Message;
-
-	@PrimaryColumn()
-	@ManyToOne(type => User)
+	@ManyToOne(type => User, user => user.userRoom, { primary: true })
+	@JoinColumn({ name: 'user_id' })
 	user: User;
 
-	@PrimaryColumn()
-	@ManyToOne(type => Room)
+	@ManyToOne(type => Room, room => room.userRoom, { primary: true	})
+	@JoinColumn({ name: 'room_id' })
 	room: Room;
+
+	@ManyToOne(type => Message, { nullable: true })
+	@JoinColumn({ name: 'message_last_received'})
+	messageLastReceived: Message;
+
+	@ManyToOne(type => Message, { nullable: true })
+	@JoinColumn({ name: 'message_last_seen' })
+	messageLastSeen: Message;
 
 }
