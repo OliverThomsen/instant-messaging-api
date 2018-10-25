@@ -18,8 +18,8 @@ export class DataBase {
 			host: "localhost",
 			port: 3306,
 			username: "root",
-			password: "admin",
-			database: "test",
+			password: "password",
+			database: "instant_messaging",
 			entities: [
 				Message,
 				Room,
