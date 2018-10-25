@@ -1,33 +1,25 @@
 export class RestApi {
-	private router;
 
-	constructor(router) {
-		this.router = router;
+	private database;
+
+	constructor(database) {
+		this.database = database;
+	}
+
+
+	public handleRoutes(router) {
+		router.get('/', (req, res) => {
+			console.log('base');
+			res.send('hello');
+		});
+
 
 		router.post('/user', (req, res) => {
-
+			this.database.createUser(req.body.username)
+				.then(user => res.send(user))
+				.catch(err => res.send(err));
 		});
-
-		router.get('/user/:id', () => {
-
-		});
-
-		router.get('/user/:id/rooms', () => {
-
-		});
-
-		router.get('/user/:id/rooms/:id/messages', () => {
-
-		});
-
-		router.post('/users', () => {
-
-		});
-
-		router.post('/rooms', () => {
-
-		});
-
-
+		
+		return router;
 	}
 }

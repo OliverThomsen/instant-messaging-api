@@ -18,4 +18,8 @@ export class User {
 	@OneToMany(type => UserRoom, userRoom => userRoom.user)
 	userRoom: UserRoom[];
 
+	constructor(userName: string) {
+		this.userName = userName;
+	}
+
 }

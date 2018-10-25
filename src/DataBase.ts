@@ -6,11 +6,15 @@ import { UserRoom } from "./entity/UserRoom";
 
 export class DataBase {
 
+	private connection;
+
 	constructor() {
+
 		this.createConnection()
-			.then(this.onConnection)
+			.then((connection) => this.onConnection(connection))
 			.catch(this.onConnectionError);
 	}
+
 
 	private createConnection() {
 		return createConnection({
@@ -31,11 +35,20 @@ export class DataBase {
 		})
 	}
 
-	private onConnection() {
 
+	private onConnection(connection) {
+		this.connection = connection;
 	}
+
 
 	private onConnectionError(error) {
 		console.log(error);
+	}
+
+
+	public createUser(userName: string): Promise<User> {
+		const user = new User(userName);
+
+		return this.connection.manager.save(user);
 	}
 }
