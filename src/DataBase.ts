@@ -10,13 +10,13 @@ export class DataBase {
 
 	constructor() {
 
-		this.createConnection()
+		this.connect()
 			.then((connection) => this.onConnection(connection))
 			.catch(this.onConnectionError);
 	}
 
 
-	private createConnection() {
+	private connect() {
 		return createConnection({
 			type: "mysql",
 			host: "localhost",
@@ -46,8 +46,24 @@ export class DataBase {
 	}
 
 
-	public createUser(userName: string): Promise<User> {
-		const user = new User(userName);
+	public getUserID(username: string): Promise<number> {
+		return this.connection
+			.getRepository(User)
+			.createQueryBuilder('user')
+			.where('user.username = :name', {name: username})
+			.getOne()
+			.then(user => {
+				if (user) {
+					return user.id;
+				} else {
+					return -1;
+				}
+			});
+	}
+
+
+	public createUser(username: string): Promise<User> {
+		const user = new User(username);
 
 		return this.connection.manager.save(user);
 	}

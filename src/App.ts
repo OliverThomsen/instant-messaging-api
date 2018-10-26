@@ -3,6 +3,7 @@ import * as bodyParser from 'body-parser';
 import { SocketHandler } from "./SocketHandler";
 import { RestApi } from "./RestApi";
 import { DataBase } from "./DataBase";
+import { AuthService } from "./AuthService";
 
 
 export class App {
@@ -11,7 +12,8 @@ export class App {
 		const app = express();
 		const router = express.Router();
 		const dataBase = new DataBase();
-		const api = new RestApi(dataBase);
+		const authService = new AuthService(dataBase);
+		const api = new RestApi(dataBase, authService);
 
 
 		// Apply middle wear

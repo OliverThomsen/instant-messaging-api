@@ -9,8 +9,8 @@ export class User {
 	@PrimaryGeneratedColumn()
 	id: number;
 
-	@Column('varchar', {name: 'user_name'})
-	userName: string;
+	@Column('varchar')
+	username: string;
 
 	@OneToMany(type => Message, message => message.user)
 	message: Message[];
@@ -18,8 +18,8 @@ export class User {
 	@OneToMany(type => UserRoom, userRoom => userRoom.user)
 	userRoom: UserRoom[];
 
-	constructor(userName: string) {
-		this.userName = userName;
+	constructor(username: string) {
+		this.username = username;
 	}
 
 }
