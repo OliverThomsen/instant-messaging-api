@@ -15,23 +15,21 @@ export class RestApi {
 
 	public handleRoutes(router) {
 		router.get('/', (req, res) => {
-			console.log('base');
 			res.send('hello');
 		});
 
 
-		router.post('/login', (req, res) => {
-			console.log(req.body.username);
-			this.authService.login(req.body.username)
-				.then(id => res.send({id}))
+		router.post('/login', async (req, res) => {
+			const id = await this.authService.login(req.body.username)
 				.catch(error =>	res.send(error.message));
+			res.send({id});
 		});
 
 
-		router.post('/user', (req, res) => {
-			this.database.createUser(req.body.username)
-				.then(user => res.send(user))
+		router.post('/user', async (req, res) => {
+			const user = await this.database.createUser(req.body.username)
 				.catch(err => res.send(err.message));
+			res.send(user)
 		});
 
 		return router;

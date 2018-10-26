@@ -1,4 +1,4 @@
-import { createConnection } from 'typeorm';
+import { createConnection, Connection} from 'typeorm';
 import { Message } from './entity/Message';
 import { Room } from './entity/Room';
 import { User } from './entity/User';
@@ -6,7 +6,7 @@ import { UserRoom } from './entity/UserRoom';
 
 export class DataBase {
 
-	private connection;
+	private connection: Connection;
 
 	constructor() {
 
@@ -16,7 +16,7 @@ export class DataBase {
 	}
 
 
-	private connect() {
+	private connect(): Promise<Connection> {
 		return createConnection({
 			type: "mysql",
 			host: "localhost",
@@ -46,29 +46,27 @@ export class DataBase {
 	}
 
 
-	public getUserID(username: string): Promise<number> {
-		return this.connection
+	public async getUserID(username: string): Promise<number> {
+
+		const user = await this.connection
 			.getRepository(User)
 			.createQueryBuilder('user')
 			.where('user.username = :name', {name: username})
-			.getOne()
-			.then(user => {
-				if (user) {
-					return user.id;
-				} else {
-					return -1;
-				}
-			});
+			.getOne();
+
+		if (! user) return -1;
+
+		return user.id;
 	}
 
 
-	public createUser(username: string): Promise<User> {
-		return this.getUserID(username).then(id => {
-			if (id !== -1) throw new Error(`User with username \"${username}\" already exists`);
+	public async createUser(username: string): Promise<User> {
+		if (await this.getUserID(username) !== -1) {
+			throw new Error(`User with username \"${username}\" already exists`);
+		}
 
-			const user = new User(username);
+		const user = new User(username);
 
-			return this.connection.manager.save(user);
-		});
+		return this.connection.manager.save(user);
 	}
 }
