@@ -1,8 +1,8 @@
-import { createConnection } from "typeorm";
-import { Message } from "./entity/Message";
-import { Room } from "./entity/Room";
-import { User } from "./entity/User";
-import { UserRoom } from "./entity/UserRoom";
+import { createConnection } from 'typeorm';
+import { Message } from './entity/Message';
+import { Room } from './entity/Room';
+import { User } from './entity/User';
+import { UserRoom } from './entity/UserRoom';
 
 export class DataBase {
 

@@ -1,9 +1,13 @@
+import { DataBase } from './DataBase';
+import { AuthService } from './AuthService';
+
+
 export class RestApi {
 
 	private database;
 	private authService;
 
-	constructor(database, authService) {
+	constructor(database: DataBase, authService: AuthService) {
 		this.database = database;
 		this.authService = authService;
 	}

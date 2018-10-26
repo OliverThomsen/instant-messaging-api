@@ -1,8 +1,11 @@
+import { DataBase } from './DataBase';
+
+
 export class AuthService {
 
 	private database;
 
-	constructor(database) {
+	constructor(database: DataBase) {
 		this.database = database;
 	}
 

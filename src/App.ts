@@ -1,9 +1,9 @@
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
-import { SocketHandler } from "./SocketHandler";
-import { RestApi } from "./RestApi";
-import { DataBase } from "./DataBase";
-import { AuthService } from "./AuthService";
+import { SocketHandler } from './SocketHandler';
+import { RestApi } from './RestApi';
+import { DataBase } from './DataBase';
+import { AuthService } from './AuthService';
 
 
 export class App {
