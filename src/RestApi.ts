@@ -31,7 +31,7 @@ export class RestApi {
 		router.post('/user', (req, res) => {
 			this.database.createUser(req.body.username)
 				.then(user => res.send(user))
-				.catch(err => res.send(err));
+				.catch(err => res.send(err.message));
 		});
 
 		return router;

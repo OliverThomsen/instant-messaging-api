@@ -63,8 +63,12 @@ export class DataBase {
 
 
 	public createUser(username: string): Promise<User> {
-		const user = new User(username);
+		return this.getUserID(username).then(id => {
+			if (id !== -1) throw new Error(`User with username \"${username}\" already exists`);
 
-		return this.connection.manager.save(user);
+			const user = new User(username);
+
+			return this.connection.manager.save(user);
+		});
 	}
 }
