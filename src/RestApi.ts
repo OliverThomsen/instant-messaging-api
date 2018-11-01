@@ -32,6 +32,13 @@ export class RestApi {
 			res.send(user)
 		});
 
+
+		router.post('/room', async (req, res) => {
+			const room = await this.database.createRoom(req.body.users);
+
+			res.json(room);
+		});
+
 		return router;
 	}
 }

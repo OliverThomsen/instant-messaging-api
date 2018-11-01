@@ -1,4 +1,4 @@
-import { createConnection, Connection} from 'typeorm';
+import { createConnection, Connection, EntityManager, getRepository} from 'typeorm';
 import { Message } from './entity/Message';
 import { Room } from './entity/Room';
 import { User } from './entity/User';
@@ -7,6 +7,7 @@ import { UserRoom } from './entity/UserRoom';
 export class DataBase {
 
 	private connection: Connection;
+	private manager: EntityManager;
 
 	constructor() {
 
@@ -38,6 +39,7 @@ export class DataBase {
 
 	private onConnection(connection) {
 		this.connection = connection;
+		this.manager = this.connection.manager;
 	}
 
 
@@ -67,6 +69,39 @@ export class DataBase {
 
 		const user = new User(username);
 
-		return this.connection.manager.save(user);
+		return this.manager.save(user);
+	}
+
+
+	public async createRoom(userIDs: number[]): Promise<Room> {
+		const commonRoom = await this.getCommonRoom(userIDs);
+
+		if (! commonRoom) {
+			const room = await this.manager.save(new Room());
+
+			userIDs.forEach(async (id) => {
+				const user = await getRepository(User).findOne(id);
+				const userRoom = new UserRoom(user, room);
+
+				this.connection.manager.save(userRoom)
+					.catch(error => console.log(error));
+			});
+
+			return room;
+		}
+
+		return await this.connection.getRepository(Room).findOne(commonRoom.room_id);
+	}
+
+
+	private async getCommonRoom(userIDs: number[]) {
+		return await this.connection
+			.createQueryBuilder()
+			.select('userRoom.room_id')
+			.from(UserRoom, 'userRoom')
+			.groupBy('userRoom.room_id')
+			.having('SUM(user_id IN (:...users)) = COUNT(*)', {users: userIDs})
+			.andHaving('COUNT(*) = :num', {num: userIDs.length})
+			.getRawOne();
 	}
 }

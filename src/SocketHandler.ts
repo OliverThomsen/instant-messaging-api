@@ -4,6 +4,7 @@ import { Server } from 'net';
 
 export class SocketHandler {
 	private io;
+	private userSockets = {};
 
 	constructor(server: Server) {
 		this.io = io(server, {serveClient: false});
@@ -13,6 +14,7 @@ export class SocketHandler {
 
 	handleSocket(socket): void {
 		console.log('New socket connection established - id: ', socket.id);
+
 
 		const rooms = [socket.handshake.query.rooms];
 
@@ -26,7 +28,7 @@ export class SocketHandler {
 
 		socket.on('chat', (data) => {
 			console.log(data);
-			io.to(data.room).emit('chat', data)
+			this.io.to(data.room).emit('chat', data)
 			// Todo: save message in db
 		});
 

@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, PrimaryColumn, OneToOne, JoinColumn } from "typeorm";
+import { Entity, ManyToOne, JoinColumn } from "typeorm";
 import { Message } from "./Message";
 import { User } from "./User";
 import { Room } from "./Room";
@@ -22,5 +22,10 @@ export class UserRoom {
 	@ManyToOne(type => Message, { nullable: true })
 	@JoinColumn({ name: 'message_last_seen' })
 	messageLastSeen: Message;
+
+	constructor(user: User, room: Room) {
+		this.user = user;
+		this.room = room;
+	}
 
 }
