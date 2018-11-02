@@ -4,8 +4,8 @@ import { AuthService } from './AuthService';
 
 export class RestApi {
 
-	private database;
-	private authService;
+	private database: DataBase;
+	private authService: AuthService;
 
 	constructor(database: DataBase, authService: AuthService) {
 		this.database = database;
@@ -26,17 +26,23 @@ export class RestApi {
 		});
 
 
-		router.post('/user', async (req, res) => {
+		router.post('/users', async (req, res) => {
 			const user = await this.database.createUser(req.body.username)
 				.catch(err => res.send(err.message));
 			res.send(user)
 		});
 
 
-		router.post('/chat', async (req, res) => {
+		router.post('/chats', async (req, res) => {
 			const room = await this.database.createChat(req.body.users);
 
 			res.json(room);
+		});
+
+		router.get('/chats/:id', async (req, res) => {
+			const chats = await this.database.getChats(req.params.id);
+
+			res.json(chats);
 		});
 
 		return router;

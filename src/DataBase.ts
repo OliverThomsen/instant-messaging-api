@@ -4,6 +4,7 @@ import { Chat } from './entity/Chat';
 import { User } from './entity/User';
 import { UserChat } from './entity/UserChat';
 
+
 export class DataBase {
 
 	private connection: Connection;
@@ -67,6 +68,20 @@ export class DataBase {
 	}
 
 
+	public async getChats(userID: number): Promise<Chat[]> {
+		const rawChatIDs = await getRepository(UserChat)
+			.createQueryBuilder('userChat')
+			.select('userChat.chat_id')
+			.where('userChat.user_id = :id', {id : userID})
+			.getRawMany();
+
+		const chatIDs = [];
+		rawChatIDs.forEach(idObject => chatIDs.push(idObject.chat_id));
+
+		return getRepository(Chat).findByIds(chatIDs, {relations: ['lastMessage', 'users', 'users.user']});
+	}
+
+
 	public async getUserID(username: string): Promise<number> {
 
 		const user = await getRepository(User)
@@ -94,16 +109,6 @@ export class DataBase {
 	}
 
 
-	private onConnection(connection): void {
-		this.connection = connection;
-		this.manager = this.connection.manager;
-	}
-
-
-	private onConnectionError(error): void {
-		console.log(error);
-	}
-
 	public async saveMessage(chatId: number, userId: number, content: string): Promise<Message> {
 		const user = await getRepository(User).findOne(userId);
 		const chat = await getRepository(Chat).findOne(chatId);
@@ -114,5 +119,16 @@ export class DataBase {
 		this.manager.save(chat);
 
 		return message;
+	}
+
+
+	private onConnection(connection): void {
+		this.connection = connection;
+		this.manager = this.connection.manager;
+	}
+
+
+	private onConnectionError(error): void {
+		console.log(error);
 	}
 }
