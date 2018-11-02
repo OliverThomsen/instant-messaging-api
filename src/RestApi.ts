@@ -33,8 +33,8 @@ export class RestApi {
 		});
 
 
-		router.post('/room', async (req, res) => {
-			const room = await this.database.createRoom(req.body.users);
+		router.post('/chat', async (req, res) => {
+			const room = await this.database.createChat(req.body.users);
 
 			res.json(room);
 		});

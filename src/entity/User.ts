@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { Message } from "./Message";
-import { UserRoom } from "./UserRoom";
+import { UserChat } from "./UserChat";
 
 
 @Entity()
@@ -13,10 +13,10 @@ export class User {
 	username: string;
 
 	@OneToMany(type => Message, message => message.user)
-	message: Message[];
+	messages: Message[];
 
-	@OneToMany(type => UserRoom, userRoom => userRoom.user)
-	userRoom: UserRoom[];
+	@OneToMany(type => UserChat, userChat => userChat.user)
+	chats: UserChat[];
 
 	constructor(username: string) {
 		this.username = username;

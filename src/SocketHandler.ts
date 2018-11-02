@@ -28,13 +28,13 @@ export class SocketHandler {
 
 		socket.on('chat', (data) => {
 			console.log(data);
-			this.io.to(data.room).emit('chat', data)
-			// Todo: save message in db
+			this.io.to(data.chat).emit('chat', data)
+			// Todo: save messages in db
 		});
 
 		socket.on('typing', (data) => {
 			console.log(data);
-			socket.broadcast.to(data.room).emit('typing', data.user)
+			socket.broadcast.to(data.chat).emit('typing', data.user)
 		})
 	}
 }

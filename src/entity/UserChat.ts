@@ -1,19 +1,19 @@
 import { Entity, ManyToOne, JoinColumn } from "typeorm";
 import { Message } from "./Message";
 import { User } from "./User";
-import { Room } from "./Room";
+import { Chat } from "./Chat";
 
 
 @Entity()
-export class UserRoom {
+export class UserChat {
 
-	@ManyToOne(type => User, user => user.userRoom, { primary: true })
+	@ManyToOne(type => User, user => user.chats, { primary: true })
 	@JoinColumn({ name: 'user_id' })
 	user: User;
 
-	@ManyToOne(type => Room, room => room.userRoom, { primary: true	})
-	@JoinColumn({ name: 'room_id' })
-	room: Room;
+	@ManyToOne(type => Chat, room => room.users, { primary: true	})
+	@JoinColumn({ name: 'chat_id' })
+	chat: Chat;
 
 	@ManyToOne(type => Message, { nullable: true })
 	@JoinColumn({ name: 'message_last_received'})
@@ -23,9 +23,9 @@ export class UserRoom {
 	@JoinColumn({ name: 'message_last_seen' })
 	messageLastSeen: Message;
 
-	constructor(user: User, room: Room) {
+	constructor(user: User, chat: Chat) {
 		this.user = user;
-		this.room = room;
+		this.chat = chat;
 	}
 
 }

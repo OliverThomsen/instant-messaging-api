@@ -1,8 +1,8 @@
-import { createConnection, Connection, EntityManager, getRepository} from 'typeorm';
+import { createConnection, Connection, EntityManager, getRepository } from 'typeorm';
 import { Message } from './entity/Message';
-import { Room } from './entity/Room';
+import { Chat } from './entity/Chat';
 import { User } from './entity/User';
-import { UserRoom } from './entity/UserRoom';
+import { UserChat } from './entity/UserChat';
 
 export class DataBase {
 
@@ -27,9 +27,9 @@ export class DataBase {
 			database: "instant_messaging",
 			entities: [
 				Message,
-				Room,
+				Chat,
 				User,
-				UserRoom
+				UserChat
 			],
 			synchronize: true,
 			logging: false
@@ -37,21 +37,39 @@ export class DataBase {
 	}
 
 
-	private onConnection(connection) {
-		this.connection = connection;
-		this.manager = this.connection.manager;
+	public async createUser(username: string): Promise<User> {
+		if (await this.getUserID(username) !== -1) {
+			throw new Error(`User with username \"${username}\" already exists`);
+		}
+
+		return this.manager.save(new User(username));
 	}
 
 
-	private onConnectionError(error) {
-		console.log(error);
+	public async createChat(userIDs: number[]): Promise<Chat> {
+		const chatID = await this.getChatID(userIDs);
+
+		if (chatID === -1) {
+			const room = await this.manager.save(new Chat());
+
+			userIDs.forEach(async (id) => {
+				const user = await getRepository(User).findOne(id);
+				const userRoom = new UserChat(user, room);
+
+				this.connection.manager.save(userRoom)
+					.catch(error => console.log(error));
+			});
+
+			return room;
+		}
+
+		return await getRepository(Chat).findOne(chatID);
 	}
 
 
 	public async getUserID(username: string): Promise<number> {
 
-		const user = await this.connection
-			.getRepository(User)
+		const user = await getRepository(User)
 			.createQueryBuilder('user')
 			.where('user.username = :name', {name: username})
 			.getOne();
@@ -62,46 +80,27 @@ export class DataBase {
 	}
 
 
-	public async createUser(username: string): Promise<User> {
-		if (await this.getUserID(username) !== -1) {
-			throw new Error(`User with username \"${username}\" already exists`);
-		}
-
-		const user = new User(username);
-
-		return this.manager.save(user);
-	}
-
-
-	public async createRoom(userIDs: number[]): Promise<Room> {
-		const commonRoom = await this.getCommonRoom(userIDs);
-
-		if (! commonRoom) {
-			const room = await this.manager.save(new Room());
-
-			userIDs.forEach(async (id) => {
-				const user = await getRepository(User).findOne(id);
-				const userRoom = new UserRoom(user, room);
-
-				this.connection.manager.save(userRoom)
-					.catch(error => console.log(error));
-			});
-
-			return room;
-		}
-
-		return await this.connection.getRepository(Room).findOne(commonRoom.room_id);
-	}
-
-
-	private async getCommonRoom(userIDs: number[]) {
-		return await this.connection
+	private async getChatID(userIDs: number[]): Promise<number> {
+		const chat = await this.connection
 			.createQueryBuilder()
-			.select('userRoom.room_id')
-			.from(UserRoom, 'userRoom')
-			.groupBy('userRoom.room_id')
+			.select('userChat.chat_id')
+			.from(UserChat, 'userChat')
+			.groupBy('userChat.chat_id')
 			.having('SUM(user_id IN (:...users)) = COUNT(*)', {users: userIDs})
 			.andHaving('COUNT(*) = :num', {num: userIDs.length})
 			.getRawOne();
+
+		return chat ? chat.chat_id : -1;
+	}
+
+
+	private onConnection(connection): void {
+		this.connection = connection;
+		this.manager = this.connection.manager;
+	}
+
+
+	private onConnectionError(error): void {
+		console.log(error);
 	}
 }

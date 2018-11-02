@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from "typeorm";
 import { User } from "./User";
-import { Room } from "./Room";
+import { Chat } from "./Chat";
 
 
 @Entity()
@@ -15,10 +15,18 @@ export class Message {
 	@CreateDateColumn({ name: 'time_stamp' })
 	timeStamp: Date;
 
-	@ManyToOne(type => User, user => user.message, { nullable: false })
+	@ManyToOne(type => User, user => user.messages, { nullable: false })
+	@JoinColumn({ name: 'user_id'})
 	user: User;
 
-	@ManyToOne(type => Room, room => room.message, { nullable: false })
-	room: Room;
+	@ManyToOne(type => Chat, chat => chat.messages, { nullable: false })
+	@JoinColumn({ name: 'chat_id'})
+	chat: Chat;
+
+	constructor(content: string, user: User, chat: Chat) {
+		this.content = content;
+		this.user = user;
+		this.chat = chat;
+	}
 
 }
