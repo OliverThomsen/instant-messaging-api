@@ -26,7 +26,7 @@ export class App {
 
 
 		// Initiate web sockets
-		new SocketHandler(server);
+		new SocketHandler(server, dataBase);
 
 	}
 }

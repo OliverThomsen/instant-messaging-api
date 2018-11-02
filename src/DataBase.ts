@@ -103,4 +103,16 @@ export class DataBase {
 	private onConnectionError(error): void {
 		console.log(error);
 	}
+
+	public async saveMessage(chatId: number, userId: number, content: string): Promise<Message> {
+		const user = await getRepository(User).findOne(userId);
+		const chat = await getRepository(Chat).findOne(chatId);
+		const message = await this.manager.save(new Message(content, user, chat));
+
+		chat.lastMessage = message;
+
+		this.manager.save(chat);
+
+		return message;
+	}
 }
