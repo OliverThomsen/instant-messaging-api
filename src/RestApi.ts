@@ -45,6 +45,12 @@ export class RestApi {
 			res.json(chats);
 		});
 
+		router.get('/chats/:id/messages', async (req, res) => {
+			const messages = await this.database.getMessages(req.params.id);
+
+			res.json(messages);
+		});
+
 		return router;
 	}
 }

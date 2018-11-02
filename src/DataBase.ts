@@ -95,6 +95,14 @@ export class DataBase {
 	}
 
 
+	public async getMessages(chatID): Promise<Message[]> {
+		return getRepository(Message)
+			.createQueryBuilder()
+			.where('chat_id = :id', {id: chatID})
+			.getMany();
+	}
+
+
 	private async getChatID(userIDs: number[]): Promise<number> {
 		const chat = await this.connection
 			.createQueryBuilder()
@@ -109,9 +117,9 @@ export class DataBase {
 	}
 
 
-	public async saveMessage(chatId: number, userId: number, content: string): Promise<Message> {
-		const user = await getRepository(User).findOne(userId);
-		const chat = await getRepository(Chat).findOne(chatId);
+	public async saveMessage(chatID: number, userID: number, content: string): Promise<Message> {
+		const user = await getRepository(User).findOne(userID);
+		const chat = await getRepository(Chat).findOne(chatID);
 		const message = await this.manager.save(new Message(content, user, chat));
 
 		chat.lastMessage = message;
