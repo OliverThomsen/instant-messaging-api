@@ -6,7 +6,7 @@ import { Chat } from './entity/Chat';
 
 export class SocketHandler {
 	private io;
-	private userSockets = {};
+	private activeUserSockets = {};
 	private dataBase: DataBase;
 
 	constructor(server: Server, dataBase: DataBase) {
@@ -17,7 +17,7 @@ export class SocketHandler {
 
 
 	public handleSocket(socket): void {
-		console.log('New socket connection established - id:', socket.id);
+		console.log('New socket connection:', socket.id);
 		const userID = socket.handshake.query.userID;
 
 		this.attachSocketToUser(socket, userID);
@@ -32,13 +32,18 @@ export class SocketHandler {
 			socket.broadcast.to(data.chat).emit('typing', data.user)
 		});
 
+		socket.on('disconnect', () => {
+			const i = this.activeUserSockets[userID].indexOf(socket);
+			this.activeUserSockets[userID].splice(i, 1);
+			console.log('Socket disconnected:', socket.id);
+		});
 	}
 
 
 	public subscribeUsersToChat(chat: Chat, usersIDs: number[]) {
 		usersIDs.forEach(id => {
-			if (this.userSockets[id]) {
-				this.userSockets[id].forEach(socket => {
+			if (this.activeUserSockets[id]) {
+				this.activeUserSockets[id].forEach(socket => {
 					socket.join(chat.id, (err) => {
 						if (err) throw err;
 					});
@@ -49,11 +54,11 @@ export class SocketHandler {
 
 
 	private attachSocketToUser(socket, userID) {
-		if (! this.userSockets[userID]) {
-			this.userSockets[userID] = [];
+		if (! this.activeUserSockets[userID]) {
+			this.activeUserSockets[userID] = [];
 		}
 
-		this.userSockets[userID].push(socket);
+		this.activeUserSockets[userID].push(socket);
 	}
 
 
