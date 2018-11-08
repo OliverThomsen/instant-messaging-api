@@ -21,13 +21,11 @@ export class RestApi {
 			res.send('hello');
 		});
 
-
 		router.post('/login', async (req, res) => {
 			const id = await this.authService.login(req.body.username)
 				.catch(error =>	res.send(error.message));
 			res.send({id});
 		});
-
 
 		router.post('/users', async (req, res) => {
 			const user = await this.database.createUser(req.body.username)
@@ -35,18 +33,17 @@ export class RestApi {
 			res.send(user)
 		});
 
+		router.get('/users/:id/chats', async (req, res) => {
+			const chats = await this.database.getUserChats(req.params.id);
+
+			res.json(chats);
+		});
 
 		router.post('/chats', async (req, res) => {
 			const chat = await this.database.createChat(req.body.users);
 			this.socketHandler.subscribeUsersToChat(chat, req.body.users);
 
 			res.json(chat);
-		});
-
-		router.get('/chats/:id', async (req, res) => {
-			const chats = await this.database.getChats(req.params.id);
-
-			res.json(chats);
 		});
 
 		router.get('/chats/:id/messages', async (req, res) => {
