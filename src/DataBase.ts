@@ -75,10 +75,20 @@ export class DataBase {
 			.where('userChat.user_id = :id', {id : userID})
 			.getRawMany();
 
-		const chatIDs = [];
-		rawChatIDs.forEach(idObject => chatIDs.push(idObject.chat_id));
+		const chatIDs = rawChatIDs.map(idObject => idObject.chat_id);
 
 		return getRepository(Chat).findByIds(chatIDs, {relations: ['lastMessage', 'users', 'users.user']});
+	}
+
+
+	public async getChatIDs(userID): Promise<number[]> {
+		const rawChatIDs = await getRepository(UserChat)
+			.createQueryBuilder('')
+			.select('chat_id')
+			.where('user_id = :id', {id: userID})
+			.getRawMany();
+
+		return rawChatIDs.map(rawID => rawID.chat_id);
 	}
 
 

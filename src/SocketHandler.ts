@@ -15,30 +15,41 @@ export class SocketHandler {
 	}
 
 
-	handleSocket(socket): void {
+	public handleSocket(socket): void {
 		console.log('New socket connection established - id:', socket.id);
 		const userID = socket.handshake.query.userID;
 
+		this.attachSocketToUser(socket, userID);
+		this.subscribeSocketToChats(socket, userID);
 
 		socket.on('message', (data) => {
 			this.io.to(data.chatID).emit('chat', data);
 			this.dataBase.saveMessage(data.chatID, userID, data.content);
 		});
 
-
 		socket.on('typing', (data) => {
-			console.log(data);
 			socket.broadcast.to(data.chat).emit('typing', data.user)
-		})
+		});
 	}
 
 
-	private joinChatRooms(socket, userId): void {
-		// TODO: subscribe to rooms
-		// socket.join(rooms, (err) => {
-		// 	if (err) throw err;
-		//
-		// 	console.log(rooms)
-		// });
+	private attachSocketToUser(socket, userID) {
+		if (! this.userSockets[userID]) {
+			this.userSockets[userID] = [];
+		}
+
+		this.userSockets[userID].push(socket);
+	}
+
+
+	private async subscribeSocketToChats(socket, userID) {
+		const chatIDs = await this.dataBase.getChatIDs(userID);
+
+		chatIDs.forEach((chatID) => {
+			socket.join(chatID, (err) => {
+				if (err) throw err;
+			});
+		});
+
 	}
 }
