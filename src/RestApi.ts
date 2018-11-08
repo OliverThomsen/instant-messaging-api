@@ -40,14 +40,17 @@ export class RestApi {
 		});
 
 		router.post('/chats', async (req, res) => {
-			const chat = await this.database.createChat(req.body.users);
-			this.socketHandler.subscribeUsersToChat(chat, req.body.users);
-
-			res.json(chat);
+			try {
+				const chat = await this.database.createChat(req.body.users);
+				this.socketHandler.subscribeUsersToChat(chat, req.body.users);
+				res.json(chat);
+			} catch(error) {
+				res.send(error.message);
+			}
 		});
 
 		router.get('/chats/:id/messages', async (req, res) => {
-			const messages = await this.database.getMessages(req.params.id);
+			const messages = await this.database.getChatMessages(req.params.id);
 
 			res.json(messages);
 		});

@@ -25,7 +25,7 @@ export class SocketHandler {
 
 		socket.on('message', (data) => {
 			this.io.to(data.chatID).emit('chat', data);
-			this.dataBase.saveMessage(data.chatID, userID, data.content);
+			this.dataBase.createMessage(data.chatID, userID, data.content);
 		});
 
 		socket.on('typing', (data) => {
@@ -63,7 +63,7 @@ export class SocketHandler {
 
 
 	private async subscribeSocketToChats(socket, userID) {
-		const chatIDs = await this.dataBase.getChatIDs(userID);
+		const chatIDs = await this.dataBase.getUserChatIDs(userID);
 
 		chatIDs.forEach((chatID) => {
 			socket.join(chatID, (err) => {

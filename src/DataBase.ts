@@ -3,6 +3,7 @@ import { Message } from './entity/Message';
 import { Chat } from './entity/Chat';
 import { User } from './entity/User';
 import { UserChat } from './entity/UserChat';
+import { accessSync } from 'fs';
 
 
 export class DataBase {
@@ -48,27 +49,47 @@ export class DataBase {
 
 
 	public async createChat(userIDs: number[]): Promise<Chat> {
-		const chatID = await this.getChatID(userIDs);
+			const users = await this.getUsers(userIDs);
+			const chat = await this.getChatInCommon(userIDs);
 
-		if (chatID === -1) {
-			const room = await this.manager.save(new Chat());
+			if (chat) return chat;
 
-			userIDs.forEach(async (id) => {
-				const user = await getRepository(User).findOne(id);
-				const userRoom = new UserChat(user, room);
+			const newChat = await this.manager.save(new Chat());
+			for (const user of users) {
+				const userRoom = new UserChat(user, newChat);
+				this.connection.manager.save(userRoom);
+			}
 
-				this.connection.manager.save(userRoom)
-					.catch(error => console.log(error));
-			});
-
-			return room;
-		}
-
-		return await getRepository(Chat).findOne(chatID);
+			return newChat;
 	}
 
 
-	public async getChats(userID: number): Promise<Chat[]> {
+	public async createMessage(chatID: number, userID: number, content: string): Promise<Message> {
+		const user = await getRepository(User).findOne(userID);
+		const chat = await getRepository(Chat).findOne(chatID);
+		const message = await this.manager.save(new Message(content, user, chat));
+
+		chat.lastMessage = message;
+
+		this.manager.save(chat);
+
+		return message;
+	}
+
+
+	public async getUserID(username: string): Promise<number> {
+		const user = await getRepository(User)
+			.createQueryBuilder('user')
+			.where('user.username = :name', {name: username})
+			.getOne();
+
+		if (! user) return -1;
+
+		return user.id;
+	}
+
+
+	public async getUserChats(userID: number): Promise<Chat[]> {
 		const rawChatIDs = await getRepository(UserChat)
 			.createQueryBuilder('userChat')
 			.select('userChat.chat_id')
@@ -81,7 +102,7 @@ export class DataBase {
 	}
 
 
-	public async getChatIDs(userID): Promise<number[]> {
+	public async getUserChatIDs(userID): Promise<number[]> {
 		const rawChatIDs = await getRepository(UserChat)
 			.createQueryBuilder('')
 			.select('chat_id')
@@ -92,20 +113,7 @@ export class DataBase {
 	}
 
 
-	public async getUserID(username: string): Promise<number> {
-
-		const user = await getRepository(User)
-			.createQueryBuilder('user')
-			.where('user.username = :name', {name: username})
-			.getOne();
-
-		if (! user) return -1;
-
-		return user.id;
-	}
-
-
-	public async getMessages(chatID): Promise<Message[]> {
+	public async getChatMessages(chatID): Promise<Message[]> {
 		return getRepository(Message)
 			.createQueryBuilder()
 			.where('chat_id = :id', {id: chatID})
@@ -113,8 +121,8 @@ export class DataBase {
 	}
 
 
-	private async getChatID(userIDs: number[]): Promise<number> {
-		const chat = await this.connection
+	private async getChatInCommon(userIDs: number[]): Promise<Chat> {
+		const chatID = await this.connection
 			.createQueryBuilder()
 			.select('userChat.chat_id')
 			.from(UserChat, 'userChat')
@@ -123,20 +131,19 @@ export class DataBase {
 			.andHaving('COUNT(*) = :num', {num: userIDs.length})
 			.getRawOne();
 
-		return chat ? chat.chat_id : -1;
+		return getRepository(Chat).findOne(chatID);
 	}
 
 
-	public async saveMessage(chatID: number, userID: number, content: string): Promise<Message> {
-		const user = await getRepository(User).findOne(userID);
-		const chat = await getRepository(Chat).findOne(chatID);
-		const message = await this.manager.save(new Message(content, user, chat));
+	private async getUsers(userIDs): Promise<User[]> {
+		const users = [];
+		for (const userID of userIDs) {
+			const user = await getRepository(User).findOne(userID);
+			if (user) users.push(user);
+			else throw new Error('User with id: ' + userID + ' does not exist');
+		}
 
-		chat.lastMessage = message;
-
-		this.manager.save(chat);
-
-		return message;
+		return users;
 	}
 
 
