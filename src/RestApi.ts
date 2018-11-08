@@ -1,15 +1,18 @@
 import { DataBase } from './DataBase';
 import { AuthService } from './AuthService';
+import { SocketHandler } from './SocketHandler';
 
 
 export class RestApi {
 
 	private database: DataBase;
 	private authService: AuthService;
+	private socketHandler: SocketHandler;
 
-	constructor(database: DataBase, authService: AuthService) {
+	constructor(database: DataBase, authService: AuthService, socketHandler: SocketHandler) {
 		this.database = database;
 		this.authService = authService;
+		this.socketHandler = socketHandler;
 	}
 
 
@@ -34,9 +37,10 @@ export class RestApi {
 
 
 		router.post('/chats', async (req, res) => {
-			const room = await this.database.createChat(req.body.users);
+			const chat = await this.database.createChat(req.body.users);
+			this.socketHandler.subscribeUsersToChat(chat, req.body.users);
 
-			res.json(room);
+			res.json(chat);
 		});
 
 		router.get('/chats/:id', async (req, res) => {

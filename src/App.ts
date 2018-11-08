@@ -13,20 +13,13 @@ export class App {
 		const router = express.Router();
 		const dataBase = new DataBase();
 		const authService = new AuthService(dataBase);
-		const api = new RestApi(dataBase, authService);
-
+		const server = app.listen(port);
+		const socketHandler = new SocketHandler(server, dataBase);
+		const api = new RestApi(dataBase, authService, socketHandler);
 
 		// Apply middle wear
 		app.use(bodyParser.json());
 		app.use('/api', api.handleRoutes(router));
-
-
-		// Listen to the server
-		const server = app.listen(port);
-
-
-		// Initiate web sockets
-		new SocketHandler(server, dataBase);
 
 	}
 }

@@ -1,6 +1,7 @@
 import * as io from 'socket.io';
 import { Server } from 'net';
 import { DataBase } from './DataBase';
+import { Chat } from './entity/Chat';
 
 
 export class SocketHandler {
@@ -29,6 +30,20 @@ export class SocketHandler {
 
 		socket.on('typing', (data) => {
 			socket.broadcast.to(data.chat).emit('typing', data.user)
+		});
+
+	}
+
+
+	public subscribeUsersToChat(chat: Chat, usersIDs: number[]) {
+		usersIDs.forEach(id => {
+			if (this.userSockets[id]) {
+				this.userSockets[id].forEach(socket => {
+					socket.join(chat.id, (err) => {
+						if (err) throw err;
+					});
+				});
+			}
 		});
 	}
 
