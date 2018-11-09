@@ -18,24 +18,24 @@ export class RestApi {
 
 	public handleRoutes(router) {
 		router.get('/', (req, res) => {
-			res.send('hello');
+			res.json({message: 'hello'});
 		});
 
 		router.post('/login', async (req, res) => {
+			console.log(req.body);
 			const id = await this.authService.login(req.body.username)
 				.catch(error =>	res.send(error.message));
-			res.send({id});
+			res.json({id});
 		});
 
 		router.post('/users', async (req, res) => {
 			const user = await this.database.createUser(req.body.username)
 				.catch(err => res.send(err.message));
-			res.send(user)
+			res.json(user)
 		});
 
 		router.get('/users/:id/chats', async (req, res) => {
 			const chats = await this.database.getUserChats(req.params.id);
-
 			res.json(chats);
 		});
 
@@ -45,13 +45,12 @@ export class RestApi {
 				this.socketHandler.subscribeUsersToChat(chat, req.body.users);
 				res.json(chat);
 			} catch(error) {
-				res.send(error.message);
+				res.json({error: error.message});
 			}
 		});
 
 		router.get('/chats/:id/messages', async (req, res) => {
 			const messages = await this.database.getChatMessages(req.params.id);
-
 			res.json(messages);
 		});
 
