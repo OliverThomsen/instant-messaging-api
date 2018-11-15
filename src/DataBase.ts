@@ -101,7 +101,7 @@ export class DataBase {
 		const chatsWithLastMessage = chats.map(async chat => {
 			chat.lastMessage = await this.getLastMessage(chat.id);
 
-			return this.applyDefaultName(chat);
+			return this.applyDefaultChatName(chat, userID);
 		});
 
 		return await Promise.all(chatsWithLastMessage);
@@ -163,11 +163,13 @@ export class DataBase {
 	}
 
 
-	private applyDefaultName(chat: Chat): Chat {
+	private applyDefaultChatName(chat: Chat, userID: number): Chat {
 		if (chat.name) return;
 
-		chat.name = chat.users.reduce((nameAccumulator: string, userChat: UserChat, index: number) => {
-			if (index === 0) return userChat.user.username;
+		chat.name = chat.users.reduce((nameAccumulator: string, userChat: UserChat) => {
+			if (userChat.user.id === userID) return nameAccumulator;
+			if (nameAccumulator.length === 0) return userChat.user.username;
+
 			return `${nameAccumulator}, ${userChat.user.username}`;
 		}, '');
 

@@ -34,7 +34,7 @@ export class RestApi {
 		});
 
 		router.get('/users/:id/chats', async (req, res) => {
-			const chats = await this.database.getUserChats(req.params.id);
+			const chats = await this.database.getUserChats(parseInt(req.params.id));
 			res.json(chats);
 		});
 
