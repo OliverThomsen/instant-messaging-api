@@ -3,7 +3,6 @@ import { Message } from './entity/Message';
 import { Chat } from './entity/Chat';
 import { User } from './entity/User';
 import { UserChat } from './entity/UserChat';
-import { accessSync } from 'fs';
 
 
 export class DataBase {
@@ -67,13 +66,14 @@ export class DataBase {
 	public async createMessage(chatID: number, userID: number, content: string): Promise<Message> {
 		const user = await getRepository(User).findOne(userID);
 		const chat = await getRepository(Chat).findOne(chatID);
-		const message = await this.manager.save(new Message(content, user, chat));
+		const message = new Message(content, user, chat);
 
-		chat.lastMessage = message;
+		return await this.manager.save(message);
+	}
 
-		this.manager.save(chat);
 
-		return message;
+	public async getUser(userID): Promise<User> {
+		return getRepository(User).findOne(userID);
 	}
 
 
@@ -97,8 +97,14 @@ export class DataBase {
 			.getRawMany();
 
 		const chatIDs = rawChatIDs.map(idObject => idObject.chat_id);
+		const chats = await getRepository(Chat).findByIds(chatIDs, {relations: ['users', 'users.user']});
+		const chatsWithLastMessage = chats.map(async chat => {
+			chat.lastMessage = await this.getLastMessage(chat.id);
 
-		return getRepository(Chat).findByIds(chatIDs, {relations: ['lastMessage', 'users', 'users.user']});
+			return this.applyDefaultName(chat);
+		});
+
+		return await Promise.all(chatsWithLastMessage);
 	}
 
 
@@ -118,6 +124,16 @@ export class DataBase {
 			.createQueryBuilder()
 			.where('chat_id = :id', {id: chatID})
 			.getMany();
+	}
+
+
+	public getLastMessage(chatID: number): Promise<Message> {
+		return getRepository(Message)
+			.createQueryBuilder('message')
+			.leftJoinAndSelect('message.user', 'user')
+			.where('message.chat_id =:id', {id: chatID})
+			.orderBy('message.time_stamp', 'DESC')
+			.getOne()
 	}
 
 
@@ -144,6 +160,18 @@ export class DataBase {
 		}
 
 		return users;
+	}
+
+
+	private applyDefaultName(chat: Chat): Chat {
+		if (chat.name) return;
+
+		chat.name = chat.users.reduce((nameAccumulator: string, userChat: UserChat, index: number) => {
+			if (index === 0) return userChat.user.username;
+			return `${nameAccumulator}, ${userChat.user.username}`;
+		}, '');
+
+		return chat;
 	}
 
 

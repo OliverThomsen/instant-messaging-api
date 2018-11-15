@@ -12,14 +12,11 @@ export class Chat {
 	@Column('varchar', { nullable: true })
 	name: string;
 
-	@OneToOne(type => Message, { nullable: true })
-	@JoinColumn({ name: 'last_message'})
-	lastMessage: Message;
-
 	@OneToMany(type => Message, message => message.chat)
 	messages: Message[];
 
 	@OneToMany(type => UserChat, userChat => userChat.chat)
 	users: UserChat[];
 
+	lastMessage: Message;
 }
