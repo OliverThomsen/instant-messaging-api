@@ -2,6 +2,7 @@ import * as io from 'socket.io';
 import { Server } from 'net';
 import { DataBase } from './DataBase';
 import { Chat } from './entity/Chat';
+import { log } from 'util';
 
 
 export class SocketHandler {
@@ -16,20 +17,21 @@ export class SocketHandler {
 	}
 
 
-	public handleSocket(socket): void {
+	public async handleSocket(socket): Promise<any> {
 		console.log('New socket connection:', socket.id);
 		const userID = socket.handshake.query.userID;
+		const user = await this.dataBase.getUser(userID);
 
 		this.attachSocketToUser(socket, userID);
-		this.subscribeSocketToChats(socket, userID);
+		this.subscribeSocketToChats(socket, userID)
 
-		socket.on('message', (data) => {
-			this.io.to(data.chatID).emit('chat', data);
-			this.dataBase.createMessage(data.chatID, userID, data.content);
+		socket.on('message', async (data) => {
+			const message = await this.dataBase.createMessage(data.chatID, userID, data.content);
+			this.io.to(data.chatID).emit('message', message);
 		});
 
 		socket.on('typing', (data) => {
-			socket.broadcast.to(data.chat).emit('typing', data.user)
+			socket.broadcast.to(data.chatID).emit('typing', {username: user.username, chatID: data.chatID})
 		});
 
 		socket.on('disconnect', () => {

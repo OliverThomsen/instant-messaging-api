@@ -22,7 +22,6 @@ export class RestApi {
 		});
 
 		router.post('/login', async (req, res) => {
-			console.log(req.body);
 			const id = await this.authService.login(req.body.username)
 				.catch(error =>	res.send(error.message));
 			res.json({id});
