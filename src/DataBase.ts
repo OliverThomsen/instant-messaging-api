@@ -47,19 +47,24 @@ export class DataBase {
 	}
 
 
-	public async createChat(userIDs: number[]): Promise<Chat> {
-			const users = await this.getUsers(userIDs);
-			const chat = await this.getChatInCommon(userIDs);
+	public async createChat(userIDs: number[], userID: number): Promise<Chat> {
+		const users = await this.getUsers(userIDs);
+		const chat = await this.getChatInCommon(userIDs);
 
-			if (chat) return chat;
+		if (chat) {
+			return this.applyDefaultChatName(chat, userID);
+		}
 
-			const newChat = await this.manager.save(new Chat());
-			for (const user of users) {
-				const userRoom = new UserChat(user, newChat);
-				this.connection.manager.save(userRoom);
-			}
+		const newChat = await this.manager.save(new Chat());
 
-			return newChat;
+		for (const user of users) {
+			const userChat = new UserChat(user, newChat);
+			await this.connection.manager.save(userChat);
+		}
+
+		const chatWithUsers = await getRepository(Chat).findOne(newChat.id, {relations: ['users', 'users.user']});
+
+		return this.applyDefaultChatName(chatWithUsers, userID);
 	}
 
 
@@ -133,21 +138,20 @@ export class DataBase {
 			.leftJoinAndSelect('message.user', 'user')
 			.where('message.chat_id =:id', {id: chatID})
 			.orderBy('message.time_stamp', 'DESC')
-			.getOne()
+			.getOne();
 	}
 
 
-	private async getChatInCommon(userIDs: number[]): Promise<Chat> {
-		const chatID = await this.connection
+	private async getChatInCommon(userIDs: number[]): Promise<Chat|null> {
+		const rawChatID = await getRepository(UserChat)
 			.createQueryBuilder()
-			.select('userChat.chat_id')
-			.from(UserChat, 'userChat')
-			.groupBy('userChat.chat_id')
-			.having('SUM(user_id IN (:...users)) = COUNT(*)', {users: userIDs})
+			.select('chat_id')
+			.groupBy('chat_id')
+			.having('SUM(user_id IN (:users)) = COUNT(*)', {users: userIDs})
 			.andHaving('COUNT(*) = :num', {num: userIDs.length})
 			.getRawOne();
 
-		return getRepository(Chat).findOne(chatID);
+		return rawChatID ? getRepository(Chat).findOne(rawChatID.chat_id, {relations: ['users', 'users.user']}) : null;
 	}
 
 

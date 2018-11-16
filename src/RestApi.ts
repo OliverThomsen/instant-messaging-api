@@ -40,7 +40,7 @@ export class RestApi {
 
 		router.post('/chats', async (req, res) => {
 			try {
-				const chat = await this.database.createChat(req.body.users);
+				const chat = await this.database.createChat(req.body.users, req.body.userID);
 				this.socketHandler.subscribeUsersToChat(chat, req.body.users);
 				res.json(chat);
 			} catch(error) {
