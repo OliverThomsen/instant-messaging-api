@@ -28,6 +28,10 @@ export class RestApi {
 		});
 
 		router.post('/users', async (req, res) => {
+			if (req.body.username.length < 3) {
+				console.log('error')
+				res.status(400).json({error: 'Username must be more than 3 characters'})
+			}
 			const user = await this.database.createUser(req.body.username)
 				.catch(err => res.send(err.message));
 			res.json(user)
