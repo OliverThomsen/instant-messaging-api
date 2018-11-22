@@ -47,21 +47,22 @@ export class DataBase {
 	}
 
 
-	public async createChat(userIDs: number[], userID: number): Promise<Chat> {
-		const users = await this.getUsers(userIDs);
-		const chat = await this.getChatInCommon(userIDs);
+	public async createChat(usernames: string[], userID: number): Promise<Chat> {
+		const user = await this.getUser(userID);
+		usernames.push(user.username);
+		usernames = [...new Set(usernames.map(username => username.toLowerCase()))];
+		const users = await this.getUsersByUsername(usernames);
+		const chat = await this.getChatInCommon(users.map(user => user.id));
 
 		if (chat) {
 			return this.applyDefaultChatName(chat, userID);
 		}
 
 		const newChat = await this.manager.save(new Chat());
-
 		for (const user of users) {
 			const userChat = new UserChat(user, newChat);
 			await this.connection.manager.save(userChat);
 		}
-
 		const chatWithUsers = await getRepository(Chat).findOne(newChat.id, {relations: ['users', 'users.user']});
 
 		return this.applyDefaultChatName(chatWithUsers, userID);
@@ -80,7 +81,17 @@ export class DataBase {
 	public async getUser(userID): Promise<User> {
 		return getRepository(User).findOne(userID);
 	}
+	
 
+    public async searchUsers(username: String): Promise<User[]> {
+		username = username ? username : '';
+		return await getRepository(User)
+			.createQueryBuilder()
+			.where('username like :name', {name: `%${username}%`})
+			.printSql()
+			.getMany();
+	}
+	
 
 	public async getUserID(username: string): Promise<number> {
 		const user = await getRepository(User)
@@ -165,18 +176,33 @@ export class DataBase {
 
 		return users;
 	}
+	
+	
+	private async getUsersByUsername(usernames): Promise<User[]> {
+        const users = [];
+        for (const username of usernames) {
+            const user = await getRepository(User).findOne({where: {username: username}});
+            if (user) users.push(user);
+            else throw new Error('User with username: ' + username + ' does not exist');
+        }
+
+        return users;
+	}
 
 
 	private applyDefaultChatName(chat: Chat, userID: number): Chat {
-		if (chat.name) return;
+		if (chat.name) return chat;
+		
+		if (chat.users.length === 1) {
+			chat.name = chat.users[0].user.username;
+		} else {
+            chat.name = chat.users.reduce((nameAccumulator: string, userChat: UserChat) => {
+                if (userChat.user.id === userID) return nameAccumulator;
+                if (nameAccumulator.length === 0) return userChat.user.username;
 
-		chat.name = chat.users.reduce((nameAccumulator: string, userChat: UserChat) => {
-			if (userChat.user.id === userID) return nameAccumulator;
-			if (nameAccumulator.length === 0) return userChat.user.username;
-
-			return `${nameAccumulator}, ${userChat.user.username}`;
-		}, '');
-
+                return `${nameAccumulator}, ${userChat.user.username}`;
+            }, '');
+        }
 		return chat;
 	}
 

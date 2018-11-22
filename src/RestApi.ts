@@ -27,6 +27,17 @@ export class RestApi {
 			res.json({id});
 		});
 
+		router.get('/users', async (req, res) => {
+            const username = req.query ? req.query.username : '';
+            console.log(req.query);
+            try {
+				const users = await this.database.searchUsers(username);
+				await res.json(users)
+			} catch(error) {
+				await res.status(500).json({error: error.message})
+			}
+		});
+		
 		router.post('/users', async (req, res) => {
 			if (req.body.username.length < 3) {
 				console.log('error')
@@ -43,12 +54,13 @@ export class RestApi {
 		});
 
 		router.post('/chats', async (req, res) => {
+			console.log(req.body.usernames);
 			try {
-				const chat = await this.database.createChat(req.body.users, req.body.userID);
-				this.socketHandler.subscribeUsersToChat(chat, req.body.users);
-				res.json(chat);
+				const chat = await this.database.createChat(req.body.usernames, req.body.userID);
+				this.socketHandler.subscribeUsersToChat(chat, req.body.usernames);
+				await res.json(chat);
 			} catch(error) {
-				res.json({error: error.message});
+				await res.json({error: error.message});
 			}
 		});
 

@@ -23,7 +23,7 @@ export class SocketHandler {
 		const user = await this.dataBase.getUser(userID);
 
 		this.attachSocketToUser(socket, userID);
-		this.subscribeSocketToChats(socket, userID)
+		await this.subscribeSocketToChats(socket, userID);
 
 		socket.on('message', async (data) => {
 			const message = await this.dataBase.createMessage(data.chatID, userID, data.content);
