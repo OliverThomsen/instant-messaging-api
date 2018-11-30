@@ -20,10 +20,10 @@ export class DataBase {
 
 	private connect(): Promise<Connection> {
 		return createConnection({
-			type: "mysql",
+			type: "postgres",
 			host: "localhost",
-			port: 3306,
-			username: "root",
+			port: 5432,
+			username: "postgres",
 			password: "password",
 			database: "instant_messaging",
 			entities: [
@@ -87,7 +87,7 @@ export class DataBase {
 		username = username ? username : '';
 		return await getRepository(User)
 			.createQueryBuilder()
-			.where('username like :name', {name: `%${username}%`})
+			.where('LOWER(username) LIKE LOWER(:name)', {name: `%${username}%`})
 			.printSql()
 			.getMany();
 	}
@@ -137,7 +137,8 @@ export class DataBase {
 
 	public async getChatMessages(chatID): Promise<Message[]> {
 		return getRepository(Message)
-			.createQueryBuilder()
+			.createQueryBuilder('message')
+			.leftJoinAndSelect('message.user', 'user')
 			.where('chat_id = :id', {id: chatID})
 			.getMany();
 	}
@@ -158,7 +159,7 @@ export class DataBase {
 			.createQueryBuilder()
 			.select('chat_id')
 			.groupBy('chat_id')
-			.having('SUM(user_id IN (:users)) = COUNT(*)', {users: userIDs})
+			.having('SUM(user_id IN (:...users)::int) = COUNT(*)', {users: userIDs})
 			.andHaving('COUNT(*) = :num', {num: userIDs.length})
 			.getRawOne();
 
@@ -166,7 +167,7 @@ export class DataBase {
 	}
 
 
-	private async getUsers(userIDs): Promise<User[]> {
+	private async getUsers(userIDs: number[]): Promise<User[]> {
 		const users = [];
 		for (const userID of userIDs) {
 			const user = await getRepository(User).findOne(userID);
@@ -178,10 +179,13 @@ export class DataBase {
 	}
 	
 	
-	private async getUsersByUsername(usernames): Promise<User[]> {
+	private async getUsersByUsername(usernames: string[]): Promise<User[]> {
         const users = [];
         for (const username of usernames) {
-            const user = await getRepository(User).findOne({where: {username: username}});
+            const user = await getRepository(User)
+	            .createQueryBuilder()
+	            .where('LOWER(username) LIKE LOWER(:name)', {name: `%${username}%`})
+	            .getOne();
             if (user) users.push(user);
             else throw new Error('User with username: ' + username + ' does not exist');
         }
