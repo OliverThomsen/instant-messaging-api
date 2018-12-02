@@ -1,6 +1,7 @@
 import { DataBase } from './DataBase';
 import { AuthService } from './AuthService';
 import { SocketHandler } from './SocketHandler';
+import AuthenticationError from "./errors/AuthenticationError";
 
 
 export class RestApi {
@@ -23,14 +24,14 @@ export class RestApi {
 
 		router.post('/login', async (req, res) => {
 			try {
-                if (req.body.username.length === 0) {
+                if (! req.body.username ||req.body.username.length === 0) {
                 	await res.status(400).json({error: 'Username is required'});
                 } else {
                     const id = await this.authService.login(req.body.username);
                     await res.json({id});
                 }
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 		});
 
@@ -40,20 +41,23 @@ export class RestApi {
 				const users = await this.database.searchUsers(username);
 				await res.json(users)
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 		});
 		
 		router.post('/users', async (req, res) => {
+			console.log(req.body);
 			try {
-                if (req.body.username.length < 3) {
-                    await res.status(400).json({error: 'Username must be more than 3 characters'});
+				if (! req.body.username ) {
+					await res.status(400).json({error: 'Username is required'});
+				} else if (req.body.username.length < 3) {
+	                    await res.status(400).json({error: 'Username must be more than 3 characters'});
                 } else {
                     const user = await this.database.createUser(req.body.username);
                     await res.json(user);
                 }
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 			
 		});
@@ -63,7 +67,7 @@ export class RestApi {
                 const chats = await this.database.getUserChats(parseInt(req.params.id));
                 await res.json(chats);	
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 		});
 
@@ -73,7 +77,7 @@ export class RestApi {
 				this.socketHandler.subscribeUsersToChat(chat, req.body.usernames);
 				await res.json(chat);
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 		});
 
@@ -82,15 +86,18 @@ export class RestApi {
                 const messages = await this.database.getChatMessages(req.params.id);
                 await res.json(messages);	
 			} catch(error) {
-				await this.sendInternalServerError(error, res);
+				await this.handleError(error, res);
 			}
 		});
 
 		return router;
 	}
 	
-	private async sendInternalServerError(error, res) {
-        console.log(error);
-        await res.status(500).json({error: 'Sorry something went wrong'});
+	private async handleError(error, res) {
+		if (error instanceof AuthenticationError) {
+			await res.status(400).json({error: error.message});
+		} else {
+			await res.status(500).json({error: 'Sorry something went wrong'});
+		}
 	}
 }
