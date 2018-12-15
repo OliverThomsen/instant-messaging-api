@@ -3,6 +3,9 @@
 	"version": "1.0.0",
 	"description": "An instant messaging api",
 	"main": "dist/main.js",
+	"author": "Oliver Elleman Thomsen",
+	"license": "ISC",
+	"homepage": "https://github.com/OliverThomsen/instant-messaging-api#readme",
 	"dependencies": {
 		"@types/node": "^10.11.7",
 		"body-parser": "^1.18.3",
@@ -21,10 +24,11 @@
 		"type": "git",
 		"url": "git+https://github.com/OliverThomsen/instant-messaging-api.git"
 	},
-	"author": "Oliver Elleman Thomsen",
-	"license": "ISC",
 	"bugs": {
 		"url": "https://github.com/OliverThomsen/instant-messaging-api/issues"
 	},
-	"homepage": "https://github.com/OliverThomsen/instant-messaging-api#readme"
+	"engines": {
+		"node": "8.11.3",
+		"npm": "6.5.0"
+	}
 }

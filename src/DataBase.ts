@@ -71,7 +71,7 @@ export class DataBase {
 
 	public async createMessage(chatID: number, userID: number, content: string): Promise<Message> {
 		const user = await getRepository(User).findOne(userID);
-		const chat = await getRepository(Chat).findOne(chatID);
+		const chat = await getRepository(Chat).findOne(chatID); // Todo: check if user exists in this chat
 		const message = new Message(content, user, chat);
 
 		return await this.manager.save(message);

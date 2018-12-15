@@ -2,7 +2,6 @@ import * as io from 'socket.io';
 import { Server } from 'net';
 import { DataBase } from './DataBase';
 import { Chat } from './entity/Chat';
-import { log } from 'util';
 
 
 export class SocketHandler {
@@ -17,12 +16,12 @@ export class SocketHandler {
 	}
 
 
-	public async handleSocket(socket): Promise<any> {
+	private async handleSocket(socket): Promise<any> {
 		console.log('New socket connection:', socket.id);
 		const userID = socket.handshake.query.userID;
 		const user = await this.dataBase.getUser(userID);
 
-		this.attachSocketToUser(socket, userID);
+		this.referenceSocketToUser(socket, userID);
 		await this.subscribeSocketToChats(socket, userID);
 
 		socket.on('message', async (data) => {
@@ -55,7 +54,7 @@ export class SocketHandler {
 	}
 
 
-	private attachSocketToUser(socket, userID) {
+	private referenceSocketToUser(socket, userID) {
 		if (! this.activeUserSockets[userID]) {
 			this.activeUserSockets[userID] = [];
 		}
