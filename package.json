@@ -18,8 +18,9 @@
 	},
 	"devDependencies": {},
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"heroku-postbuild": "npm install --production"
+		"start": "node dist/main",
+		"heroku-postbuild": "npm install --production",
+		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"repository": {
 		"type": "git",
