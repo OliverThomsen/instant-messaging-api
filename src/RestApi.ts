@@ -1,7 +1,7 @@
 import { DataBase } from './DataBase';
 import { AuthService } from './AuthService';
 import { SocketHandler } from './SocketHandler';
-import AuthenticationError from "./errors/AuthenticationError";
+import AuthenticationError from './errors/AuthenticationError';
 
 
 export class RestApi {
@@ -18,10 +18,6 @@ export class RestApi {
 
 
 	public handleRoutes(router) {
-		router.get('/', async (req, res) => {
-			await res.json({message: 'Welcome to the Instant Messaging API'});
-		});
-
 		router.post('/login', async (req, res) => {
 			try {
                 if (! req.body.username ||req.body.username.length === 0) {
