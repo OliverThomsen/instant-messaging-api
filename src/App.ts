@@ -21,5 +21,6 @@ export class App {
 		app.use(bodyParser.json());
 		app.use('/api', api.handleRoutes(router));
 
+		router.get('/', (req, res) => res.json({message: 'Welcome to the Instant Messaging API'}));
 	}
 }

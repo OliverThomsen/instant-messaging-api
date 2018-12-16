@@ -32,7 +32,7 @@ export class DataBase {
 				User,
 				UserChat
 			],
-			synchronize: true,
+			synchronize: false,
 			logging: false
 		})
 	}

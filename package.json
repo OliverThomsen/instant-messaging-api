@@ -16,7 +16,9 @@
 		"socket.io": "^2.1.1",
 		"typeorm": "^0.2.7"
 	},
-	"devDependencies": {},
+	"devDependencies": {
+		"typescript": "^3.2.2"
+	},
 	"scripts": {
 		"start": "node dist/main",
 		"heroku-postbuild": "npm install --production",
