@@ -19,8 +19,7 @@ export class App {
 
 		// Apply middle wear
 		app.use(bodyParser.json());
+		app.use('/', router.get('/', (req, res) => res.send('Welcome to the Instant Messaging API')));
 		app.use('/api', api.handleRoutes(router));
-
-		router.get('/', (req, res) => res.json({message: 'Welcome to the Instant Messaging API'}));
 	}
 }
