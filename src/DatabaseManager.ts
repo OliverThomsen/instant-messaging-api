@@ -3,29 +3,44 @@ import { Message } from './entity/Message';
 import { Chat } from './entity/Chat';
 import { User } from './entity/User';
 import { UserChat } from './entity/UserChat';
+import { UserExistError } from "./errors/UserExistError";
 
 
-export class DataBase {
+export class DatabaseManager {
+
+	private username: string;
+	private password: string;
+	private database: string;
+	private port: number;
+	private host: string;
 
 	private connection: Connection;
 	private manager: EntityManager;
 
-	constructor() {
+	constructor(username: string, password: string, database: string, port: number, host: string) {
+		this.username = username;
+		this.password = password;
+		this.database = database;
+		this.port = port;
+		this.host = host;
 
 		this.connect()
-			.then((connection) => this.onConnection(connection))
-			.catch(this.onConnectionError);
+			.then((connection) => {
+				this.connection = connection;
+				this.manager = this.connection.manager;
+			})
+			.catch(error => console.log(error));
 	}
 
 
 	private connect(): Promise<Connection> {
 		return createConnection({
 			type: "postgres",
-			host: "ec2-54-227-249-201.compute-1.amazonaws.com",
-			port: 5432,
-			username: "xsqrwfcwrvmsff",
-			password: "6d67098f8f3c47c7c0b9ee1bbfb7f5e14e08643108473f1f7e8615e38040b789",
-			database: "d687fmprvdip4p",
+			host: this.host,
+			port: this.port,
+			username: this.username,
+			password: this.password,
+			database: this.database,
 			entities: [
 				Message,
 				Chat,
@@ -40,7 +55,7 @@ export class DataBase {
 
 	public async createUser(username: string): Promise<User> {
 		if (await this.getUserID(username) !== -1) {
-			throw new Error(`User with username \"${username}\" already exists`);
+			throw new UserExistError(`User with username: \"${username}\" already exists`);
 		}
 
 		return this.manager.save(new User(username));
@@ -71,14 +86,22 @@ export class DataBase {
 
 	public async createMessage(chatID: number, userID: number, content: string): Promise<Message> {
 		const user = await getRepository(User).findOne(userID);
-		const chat = await getRepository(Chat).findOne(chatID); // Todo: check if user exists in this chat
-		const message = new Message(content, user, chat);
+		const chat = await getRepository(Chat).findOne(chatID);
 
-		return await this.manager.save(message);
+		// Check if user has access to chat
+		const userChat = await getRepository(UserChat)
+			.createQueryBuilder('userChat')
+			.where('userChat.user_id = :userID', {userID: user.id})
+			.andWhere('userChat.chat_id = :chatID', {chatID: chat.id})
+			.getRawOne();
+		if (userChat) {
+			const message = new Message(content, user, chat);
+			return await this.manager.save(message);
+		}
 	}
 
 
-	public async getUser(userID): Promise<User> {
+	public async getUser(userID: number): Promise<User> {
 		return getRepository(User).findOne(userID);
 	}
 	
@@ -124,7 +147,7 @@ export class DataBase {
 	}
 
 
-	public async getUserChatIDs(userID): Promise<number[]> {
+	public async getUserChatIDs(userID: number): Promise<number[]> {
 		const rawChatIDs = await getRepository(UserChat)
 			.createQueryBuilder('')
 			.select('chat_id')
@@ -135,7 +158,7 @@ export class DataBase {
 	}
 
 
-	public async getChatMessages(chatID): Promise<Message[]> {
+	public async getChatMessages(chatID: number): Promise<Message[]> {
 		return getRepository(Message)
 			.createQueryBuilder('message')
 			.leftJoinAndSelect('message.user', 'user')
@@ -144,7 +167,7 @@ export class DataBase {
 	}
 
 
-	public getLastMessage(chatID: number): Promise<Message> {
+	public async getLastMessage(chatID: number): Promise<Message> {
 		return getRepository(Message)
 			.createQueryBuilder('message')
 			.leftJoinAndSelect('message.user', 'user')
@@ -208,16 +231,5 @@ export class DataBase {
             }, '');
         }
 		return chat;
-	}
-
-
-	private onConnection(connection): void {
-		this.connection = connection;
-		this.manager = this.connection.manager;
-	}
-
-
-	private onConnectionError(error): void {
-		console.log(error);
 	}
 }
