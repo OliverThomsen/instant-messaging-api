@@ -95,6 +95,7 @@ class RestApi {
                 yield res.status(400).json({ error: error.message });
             }
             else {
+                console.log(error.message);
                 yield res.status(500).json({ error: 'Sorry something went wrong' });
             }
         });

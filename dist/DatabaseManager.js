@@ -128,7 +128,15 @@ class DatabaseManager {
                 chat.lastMessage = yield this.getLastMessage(chat.id);
                 return this.applyDefaultChatName(chat, userID);
             }));
-            return yield Promise.all(chatsWithLastMessage);
+            return Promise.all(chatsWithLastMessage).then(chats => {
+                chats.sort((a, b) => {
+                    const dateA = a.lastMessage ? new Date(a.lastMessage.timeStamp).getTime() : 0;
+                    const dateB = b.lastMessage ? new Date(b.lastMessage.timeStamp).getTime() : 0;
+                    return dateA - dateB;
+                });
+                chats.reverse();
+                return chats;
+            });
         });
     }
     getUserChatIDs(userID) {
@@ -147,6 +155,7 @@ class DatabaseManager {
                 .createQueryBuilder('message')
                 .leftJoinAndSelect('message.user', 'user')
                 .where('chat_id = :id', { id: chatID })
+                .orderBy('message.time_stamp', 'ASC')
                 .getMany();
         });
     }
