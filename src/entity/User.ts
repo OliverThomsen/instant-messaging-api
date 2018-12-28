@@ -7,16 +7,16 @@ import { UserChat } from "./UserChat";
 export class User {
 
 	@PrimaryGeneratedColumn()
-	id: number;
+	public id: number;
 
 	@Column('varchar')
-	username: string;
+	public username: string;
 
 	@OneToMany(type => Message, message => message.user)
-	messages: Message[];
+	public messages: Message[];
 
 	@OneToMany(type => UserChat, userChat => userChat.user)
-	chats: UserChat[];
+	public chats: UserChat[];
 
 	constructor(username: string) {
 		this.username = username;

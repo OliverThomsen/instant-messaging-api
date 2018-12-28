@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const AuthenticationError_1 = require("./errors/AuthenticationError");
+const UserExistError_1 = require("./errors/UserExistError");
 class RestApi {
     constructor(database, authService, socketHandler) {
         this.database = database;
@@ -22,7 +23,7 @@ class RestApi {
                     yield res.status(400).json({ error: 'Username is required' });
                 }
                 else {
-                    const id = yield this.authService.login(req.body.username);
+                    const id = yield this.authService.authenticate(req.body.username);
                     yield res.json({ id });
                 }
             }
@@ -90,7 +91,7 @@ class RestApi {
     }
     handleError(error, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (error instanceof AuthenticationError_1.default) {
+            if (error instanceof AuthenticationError_1.AuthenticationError || error instanceof UserExistError_1.UserExistError) {
                 yield res.status(400).json({ error: error.message });
             }
             else {

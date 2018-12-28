@@ -7,21 +7,21 @@ import { Chat } from "./Chat";
 export class Message {
 
 	@PrimaryGeneratedColumn()
-	id: number;
+	public id: number;
 
 	@Column('varchar', { length: 5000 })
-	content: string;
+	public content: string;
 
 	@CreateDateColumn({ name: 'time_stamp' })
-	timeStamp: Date;
+	public timeStamp: Date;
 
 	@ManyToOne(type => User, user => user.messages, { nullable: false })
 	@JoinColumn({ name: 'user_id'})
-	user: User;
+	public user: User;
 
 	@ManyToOne(type => Chat, chat => chat.messages, { nullable: false })
 	@JoinColumn({ name: 'chat_id'})
-	chat: Chat;
+	public chat: Chat;
 
 	constructor(content: string, user: User, chat: Chat) {
 		this.content = content;

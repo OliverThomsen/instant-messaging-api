@@ -9,19 +9,19 @@ export class UserChat {
 
 	@ManyToOne(type => User, user => user.chats, { primary: true })
 	@JoinColumn({ name: 'user_id' })
-	user: User;
+	public user: User;
 
 	@ManyToOne(type => Chat, room => room.users, { primary: true	})
 	@JoinColumn({ name: 'chat_id' })
-	chat: Chat;
+	public chat: Chat;
 
 	@ManyToOne(type => Message, { nullable: true })
 	@JoinColumn({ name: 'message_last_received'})
-	messageLastReceived: Message;
+	public messageLastReceived: Message;
 
 	@ManyToOne(type => Message, { nullable: true })
 	@JoinColumn({ name: 'message_last_seen' })
-	messageLastSeen: Message;
+	public messageLastSeen: Message;
 
 	constructor(user: User, chat: Chat) {
 		this.user = user;

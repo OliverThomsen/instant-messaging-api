@@ -13,11 +13,11 @@ class AuthService {
     constructor(database) {
         this.database = database;
     }
-    login(username) {
+    authenticate(username) {
         return __awaiter(this, void 0, void 0, function* () {
             const id = yield this.database.getUserID(username);
             if (id === -1)
-                throw new AuthenticationError_1.default(`Unable to authenticate user with username: ${username}`);
+                throw new AuthenticationError_1.AuthenticationError(`Unable to authenticate user with username: ${username}`);
             return id;
         });
     }

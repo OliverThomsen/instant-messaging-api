@@ -10,22 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const io = require("socket.io");
 class SocketHandler {
-    constructor(server, dataBase) {
+    constructor(server, database) {
         this.activeUserSockets = {};
         this.io = io(server, { serveClient: false });
         this.io.on('connection', socket => this.handleSocket(socket));
-        this.dataBase = dataBase;
+        this.database = database;
     }
     handleSocket(socket) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('New socket connection:', socket.id);
             const userID = socket.handshake.query.userID;
-            const user = yield this.dataBase.getUser(userID);
+            const user = yield this.database.getUser(userID);
             this.referenceSocketToUser(socket, userID);
             yield this.subscribeSocketToChats(socket, userID);
             socket.on('message', (data) => __awaiter(this, void 0, void 0, function* () {
-                const message = yield this.dataBase.createMessage(data.chatID, userID, data.content);
-                this.io.to(data.chatID).emit('message', message);
+                const message = yield this.database.createMessage(data.chatID, userID, data.content);
+                if (message) {
+                    this.io.to(data.chatID).emit('message', message);
+                }
             }));
             socket.on('typing', (data) => {
                 socket.broadcast.to(data.chatID).emit('typing', { username: user.username, chatID: data.chatID });
@@ -37,16 +39,23 @@ class SocketHandler {
             });
         });
     }
-    subscribeUsersToChat(chat, usersIDs) {
-        usersIDs.forEach(id => {
-            if (this.activeUserSockets[id]) {
-                this.activeUserSockets[id].forEach(socket => {
-                    socket.join(chat.id, (err) => {
-                        if (err)
-                            throw err;
-                    });
-                });
+    subscribeUsersToChat(chat, usersNames) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userIDs = [];
+            for (let username of usersNames) {
+                const id = yield this.database.getUserID(username);
+                userIDs.push(id);
             }
+            userIDs.forEach(id => {
+                if (this.activeUserSockets[id]) {
+                    this.activeUserSockets[id].forEach(socket => {
+                        socket.join(chat.id, (err) => {
+                            if (err)
+                                throw err;
+                        });
+                    });
+                }
+            });
         });
     }
     referenceSocketToUser(socket, userID) {
@@ -57,7 +66,7 @@ class SocketHandler {
     }
     subscribeSocketToChats(socket, userID) {
         return __awaiter(this, void 0, void 0, function* () {
-            const chatIDs = yield this.dataBase.getUserChatIDs(userID);
+            const chatIDs = yield this.database.getUserChatIDs(userID);
             chatIDs.forEach((chatID) => {
                 socket.join(chatID, (err) => {
                     if (err)

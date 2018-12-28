@@ -6,5 +6,5 @@ class AuthenticationError extends Error {
         this.name = "AuthenticationError";
     }
 }
-exports.default = AuthenticationError;
+exports.AuthenticationError = AuthenticationError;
 //# sourceMappingURL=AuthenticationError.js.map

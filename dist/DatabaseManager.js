@@ -13,20 +13,29 @@ const Message_1 = require("./entity/Message");
 const Chat_1 = require("./entity/Chat");
 const User_1 = require("./entity/User");
 const UserChat_1 = require("./entity/UserChat");
-class DataBase {
-    constructor() {
+const UserExistError_1 = require("./errors/UserExistError");
+class DatabaseManager {
+    constructor(username, password, database, port, host) {
+        this.username = username;
+        this.password = password;
+        this.database = database;
+        this.port = port;
+        this.host = host;
         this.connect()
-            .then((connection) => this.onConnection(connection))
-            .catch(this.onConnectionError);
+            .then((connection) => {
+            this.connection = connection;
+            this.manager = this.connection.manager;
+        })
+            .catch(error => console.log(error));
     }
     connect() {
         return typeorm_1.createConnection({
             type: "postgres",
-            host: "ec2-54-227-249-201.compute-1.amazonaws.com",
-            port: 5432,
-            username: "xsqrwfcwrvmsff",
-            password: "6d67098f8f3c47c7c0b9ee1bbfb7f5e14e08643108473f1f7e8615e38040b789",
-            database: "d687fmprvdip4p",
+            host: this.host,
+            port: this.port,
+            username: this.username,
+            password: this.password,
+            database: this.database,
             entities: [
                 Message_1.Message,
                 Chat_1.Chat,
@@ -40,7 +49,7 @@ class DataBase {
     createUser(username) {
         return __awaiter(this, void 0, void 0, function* () {
             if ((yield this.getUserID(username)) !== -1) {
-                throw new Error(`User with username \"${username}\" already exists`);
+                throw new UserExistError_1.UserExistError(`User with username: \"${username}\" already exists`);
             }
             return this.manager.save(new User_1.User(username));
         });
@@ -67,9 +76,17 @@ class DataBase {
     createMessage(chatID, userID, content) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield typeorm_1.getRepository(User_1.User).findOne(userID);
-            const chat = yield typeorm_1.getRepository(Chat_1.Chat).findOne(chatID); // Todo: check if user exists in this chat
-            const message = new Message_1.Message(content, user, chat);
-            return yield this.manager.save(message);
+            const chat = yield typeorm_1.getRepository(Chat_1.Chat).findOne(chatID);
+            // Check if user has access to chat
+            const userChat = yield typeorm_1.getRepository(UserChat_1.UserChat)
+                .createQueryBuilder('userChat')
+                .where('userChat.user_id = :userID', { userID: user.id })
+                .andWhere('userChat.chat_id = :chatID', { chatID: chat.id })
+                .getRawOne();
+            if (userChat) {
+                const message = new Message_1.Message(content, user, chat);
+                return yield this.manager.save(message);
+            }
         });
     }
     getUser(userID) {
@@ -134,12 +151,14 @@ class DataBase {
         });
     }
     getLastMessage(chatID) {
-        return typeorm_1.getRepository(Message_1.Message)
-            .createQueryBuilder('message')
-            .leftJoinAndSelect('message.user', 'user')
-            .where('message.chat_id =:id', { id: chatID })
-            .orderBy('message.time_stamp', 'DESC')
-            .getOne();
+        return __awaiter(this, void 0, void 0, function* () {
+            return typeorm_1.getRepository(Message_1.Message)
+                .createQueryBuilder('message')
+                .leftJoinAndSelect('message.user', 'user')
+                .where('message.chat_id =:id', { id: chatID })
+                .orderBy('message.time_stamp', 'DESC')
+                .getOne();
+        });
     }
     getChatInCommon(userIDs) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -199,13 +218,6 @@ class DataBase {
         }
         return chat;
     }
-    onConnection(connection) {
-        this.connection = connection;
-        this.manager = this.connection.manager;
-    }
-    onConnectionError(error) {
-        console.log(error);
-    }
 }
-exports.DataBase = DataBase;
-//# sourceMappingURL=DataBase.js.map
+exports.DatabaseManager = DatabaseManager;
+//# sourceMappingURL=DatabaseManager.js.map

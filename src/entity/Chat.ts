@@ -7,16 +7,16 @@ import { UserChat } from "./UserChat";
 export class Chat {
 
 	@PrimaryGeneratedColumn()
-	id: number;
+	public id: number;
 
 	@Column('varchar', { nullable: true })
-	name: string;
+	public name: string;
 
 	@OneToMany(type => Message, message => message.chat)
-	messages: Message[];
+	public messages: Message[];
 
 	@OneToMany(type => UserChat, userChat => userChat.chat)
-	users: UserChat[];
+	public users: UserChat[];
 
-	lastMessage: Message;
+	public lastMessage: Message;
 }
