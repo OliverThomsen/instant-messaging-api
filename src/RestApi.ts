@@ -96,6 +96,7 @@ export class RestApi {
 		if (error instanceof AuthenticationError || error  instanceof UserExistError) {
 			await res.status(400).json({error: error.message});
 		} else {
+			console.log(error.message);
 			await res.status(500).json({error: 'Sorry something went wrong'});
 		}
 	}
