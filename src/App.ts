@@ -11,18 +11,18 @@ export class App {
 	constructor (serverPort: number) {
 
 		// Production
-		const username = "xsqrwfcwrvmsff";
-		const password = "6d67098f8f3c47c7c0b9ee1bbfb7f5e14e08643108473f1f7e8615e38040b789";
-		const database = "d687fmprvdip4p";
-		const DBPort = 5432;
-		const host = "ec2-54-227-249-201.compute-1.amazonaws.com";
+		// const username = "xsqrwfcwrvmsff";
+		// const password = "6d67098f8f3c47c7c0b9ee1bbfb7f5e14e08643108473f1f7e8615e38040b789";
+		// const database = "d687fmprvdip4p";
+		// const DBPort = 5432;
+		// const host = "ec2-54-227-249-201.compute-1.amazonaws.com";
 
 		// Localhost
-		// const username = "postgres";
-		// const password = "password";
-		// const database = "instant_messaging";
-		// const DBPort = 5432;
-		// const host = "localhost";
+		const username = "postgres";
+		const password = "password";
+		const database = "instant_messaging_test";
+		const DBPort = 5432;
+		const host = "localhost";
 
 		const app = express();
 		const router = express.Router();

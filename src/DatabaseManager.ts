@@ -1,4 +1,4 @@
-import { createConnection, Connection, EntityManager, getRepository } from 'typeorm';
+import { createConnection, Connection, EntityManager, getRepository, DeleteResult } from 'typeorm';
 import { Message } from './entity/Message';
 import { Chat } from './entity/Chat';
 import { User } from './entity/User';
@@ -84,7 +84,7 @@ export class DatabaseManager {
 	}
 
 
-	public async createMessage(chatID: number, userID: number, content: string): Promise<Message> {
+	public async createMessage(chatID: number, userID: number, content: string): Promise<Message|null> {
 		const user = await getRepository(User).findOne(userID);
 		const chat = await getRepository(Chat).findOne(chatID);
 
@@ -94,15 +94,23 @@ export class DatabaseManager {
 			.where('userChat.user_id = :userID', {userID: user.id})
 			.andWhere('userChat.chat_id = :chatID', {chatID: chat.id})
 			.getRawOne();
+
 		if (userChat) {
 			const message = new Message(content, user, chat);
 			return await this.manager.save(message);
+		} else {
+			return null;
 		}
 	}
 
 
 	public async getUser(userID: number): Promise<User> {
 		return getRepository(User).findOne(userID);
+	}
+
+	public async getChat(chatID: number): Promise<Chat> {
+		return getRepository(Chat).findOne(chatID);
+
 	}
 	
 
@@ -187,7 +195,50 @@ export class DatabaseManager {
 	}
 
 
-	private async getChatInCommon(userIDs: number[]): Promise<Chat|null> {
+	public async deleteUser(id: number): Promise<DeleteResult> {
+		await getRepository(Message)
+			.createQueryBuilder()
+			.delete()
+			.where('user_id = :id', {id})
+			.execute();
+
+		await getRepository(UserChat)
+			.createQueryBuilder()
+			.delete()
+			.where('user_id = :id', {id})
+			.execute();
+
+		return getRepository(User)
+			.createQueryBuilder()
+			.delete()
+			.where('id = :id', {id})
+			.execute();
+	}
+
+
+	public async deleteChat(id: number): Promise<DeleteResult> {
+		await getRepository(Message)
+			.createQueryBuilder()
+			.delete()
+			.where('chat_id = :id', {id})
+			.execute();
+
+		await getRepository(UserChat)
+			.createQueryBuilder()
+			.delete()
+			.where('chat_id = :id', {id})
+			.execute();
+
+		return getRepository(Chat)
+			.createQueryBuilder()
+			.delete()
+			.where('id = :id', {id})
+			.execute();
+	}
+
+
+
+	public async getChatInCommon(userIDs: number[]): Promise<Chat|null> {
 		const rawChatID = await getRepository(UserChat)
 			.createQueryBuilder()
 			.select('chat_id')

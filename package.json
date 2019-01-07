@@ -14,15 +14,18 @@
 		"pg": "^7.7.1",
 		"reflect-metadata": "^0.1.12",
 		"socket.io": "^2.1.1",
+		"ts-node": "^7.0.1",
 		"typeorm": "^0.2.7"
 	},
 	"devDependencies": {
+		"chai": "^4.2.0",
+		"mocha": "^5.2.0",
 		"typescript": "^3.2.2"
 	},
 	"scripts": {
 		"start": "node dist/main",
 		"heroku-postbuild": "npm install --production",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"test": "mocha -r ts-node/register test/*.test.ts"
 	},
 	"repository": {
 		"type": "git",

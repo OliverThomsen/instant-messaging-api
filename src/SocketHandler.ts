@@ -45,7 +45,7 @@ export class SocketHandler {
 
 
 	public async subscribeUsersToChat(chat: Chat, usersNames: string[]): Promise<void> {
-		const userIDs = []
+		const userIDs = [];
 
 		for (let username of usersNames) {
 			const id = await this.database.getUserID(username);
